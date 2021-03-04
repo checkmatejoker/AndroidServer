@@ -291,11 +291,9 @@ public class AvcEncoder {
         int numCodecs = MediaCodecList.getCodecCount();
         for (int i = 0; i < numCodecs; i++) {
             MediaCodecInfo codecInfo = MediaCodecList.getCodecInfoAt(i);
-
             if (!codecInfo.isEncoder()) {
                 continue;
             }
-
             String[] types = codecInfo.getSupportedTypes();
             for (int j = 0; j < types.length; j++) {
                 if (types[j].equalsIgnoreCase(mimeType)) {
@@ -345,8 +343,6 @@ public class AvcEncoder {
                 des[n++] = src[width * j + i];
             }
         }
-
-
         for (int j = uh - 1; j >= 0; j--) {
             for (int i = width - 1; i > 0; i -= 2) {
                 des[n] = src[wh + width * j + i - 1];

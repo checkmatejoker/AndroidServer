@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener , Camera.PreviewCallback{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener , Camera.PreviewCallback,NV21EncoderH264.EncoderListener{
 
     private static final String TAG = "VideoChatActivity";
 
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     AvcDecode avcDecode;
 
 
-
+    NV21EncoderH264 nv21EncoderH264;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -169,6 +169,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             avcEncoder = new AvcEncoder(width, height, 24, 1280*720*2);
             avcDecode = new AvcDecode(width, height, sView.getHolder().getSurface());
 
+            nv21EncoderH264 = new NV21EncoderH264(width, height);
+            nv21EncoderH264.setEncoderListener(this);
+
 
         } catch (Exception e) {
             Log.i("jw", "camera error:" + Log.getStackTraceString(e));
@@ -199,11 +202,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             if (isRecording) {
                 //摄像头数据转h264
-                int ret = avcEncoder.offerEncoder(bytes, h264);
-                if (ret > 0) {
-                    //发送h264到vlc
-                    netSendTask.pushBuf(h264, ret);
-                }
+//                int ret = avcEncoder.offerEncoder(bytes, h264);
+//                if (ret > 0) {
+//                    //发送h264到vlc
+//                    netSendTask.pushBuf(h264, ret);
+//                }
+
+                nv21EncoderH264.encoderH264(bytes);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -245,7 +250,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 socket = new DatagramSocket();
                 //设置IP
-                address = InetAddress.getByName("192.168.3.166");
+                socket.setSendBufferSize(1024*100);
+                address = InetAddress.getByName("192.168.0.167" +
+                        "" +
+                        "");
             } catch (SocketException e) {
                 e.printStackTrace();
             } catch (UnknownHostException e) {
@@ -341,4 +349,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         audioRecord.release();
     }
 
+    @Override
+    public void h264(byte[] data) {
+        netSendTask.pushBuf(data, data.length);
+    }
 }
